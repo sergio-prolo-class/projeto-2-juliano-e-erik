@@ -57,18 +57,18 @@ public class Tela extends JPanel {
      * @param y coordenada Y
      */
 
-    public void criarAldeao(int x, int y) {
+    public void criarAldeao(int x, int y,int vida, int ataque, double velocidade) {
         Aldeao a = new Aldeao(x, y);
         a.desenhar(super.getGraphics(), this);
         this.aldeoes.add(a);
     }
 
-    public void criarArqueiro(int x, int y) {
-        Arqueiro b = new Arqueiro(x, y);
+    public void criarArqueiro(int x, int y, int vida, int ataque, double velocidade) {
+        Arqueiro b = new Arqueiro(x,y);
         b.desenhar(super.getGraphics(), this);
         this.arqueiros.add(b);
     }
-    public void criarCavaleiro(int x, int y) {
+    public void criarCavaleiro(int x, int y, int vida, int ataque, double velocidade) {
         Cavaleiro c = new Cavaleiro(x, y);
         c.desenhar(super.getGraphics(), this);
         this.cavaleiros.add(c);

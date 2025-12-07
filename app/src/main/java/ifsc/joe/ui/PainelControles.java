@@ -80,7 +80,7 @@ public class PainelControles {
         int posX = sorteio.nextInt(painelTela.getWidth() - PADDING);
         int posY = sorteio.nextInt(painelTela.getHeight() - PADDING);
 
-        getTela().criarAldeao(posX, posY);
+        getTela().criarAldeao(posX, posY,);
     }
     private void criarArqeuiroAleatorio() {
         final int PADDING = 50;

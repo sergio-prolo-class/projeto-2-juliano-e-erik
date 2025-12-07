@@ -8,16 +8,23 @@ import java.util.Objects;
 
 public abstract class Personagem {
 
+    protected int vida;
+    protected int ataque;
+    protected double velocidade;
     protected int posX, posY;
     protected boolean atacando;
     protected Image icone;
 
-    public Personagem(int posX, int posY) {
+    public Personagem(int posX, int posY, int vida, double velocidade, int ataque) {
         this.icone = carregarImagem(getNomeImagem());
         this.posX = posX;
         this.posY = posY;
         this.atacando = false;
+        this.ataque = ataque;
+        this.vida = vida;
+        this.velocidade = velocidade;
     }
+
 
     protected abstract String getNomeImagem();
 
