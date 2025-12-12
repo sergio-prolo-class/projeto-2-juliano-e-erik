@@ -19,6 +19,9 @@ public abstract class Personagem {
     protected float alpha = 1.0f;
     protected boolean morrendo = false;
     protected int alcance;
+    protected double chanceEsquiva;
+    private long tempoEsquiva = 0;
+
 
     public Personagem(int posX, int posY, int vida, double velocidade, int ataque) {
         this.icone = carregarImagem(getNomeImagem());
@@ -63,10 +66,20 @@ public abstract class Personagem {
     }
 
     public void sofrerDano(int dano) {
+        // Random para decidir esquiva
+        if (Math.random() < chanceEsquiva) {
+            exibirEfeitoEsquiva();
+            return;
+        }
+
         this.vida = Math.max(0, this.vida - dano);
     }
 
-    //método para o personagem morto sair da tela
+    protected void exibirEfeitoEsquiva() {
+        tempoEsquiva = System.currentTimeMillis();
+    }
+
+    //metodo para o personagem morto sair da tela
 
     public void iniciarFadeOut() {
         morrendo = true;
@@ -117,6 +130,17 @@ public abstract class Personagem {
             );
         } else {
             g2.drawImage(this.icone, this.posX, this.posY, tela);
+        }
+
+        if (System.currentTimeMillis() - tempoEsquiva < 600) {
+            g2.setColor(Color.YELLOW);
+            g2.setFont(new Font("Arial", Font.BOLD, 14));
+
+            g2.drawString(
+                    "ESQUIVOU!",
+                    this.posX,
+                    this.posY - 10
+            );
         }
 
         if (atacando) {

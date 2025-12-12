@@ -9,6 +9,7 @@ public class Cavaleiro extends Personagem implements Guerreiro {
     public Cavaleiro(int posX, int posY) {
         super(posX, posY, 75, 2.0, 15);
         this.alcance = 60;
+        this.chanceEsquiva = 0.15;
     }
 
     @Override

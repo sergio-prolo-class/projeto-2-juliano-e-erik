@@ -11,6 +11,7 @@ public class Arqueiro extends Personagem implements Guerreiro {
     public Arqueiro(int posX, int posY) {
         super(posX, posY, 40, 1.0, 10);
         this.alcance = 120;
+        this.chanceEsquiva = 0.25;
     }
 
     @Override

@@ -9,6 +9,7 @@ public class Aldeao extends Personagem implements Guerreiro {
     public Aldeao(int posX, int posY) {
         super(posX, posY, 25, 0.8, 5);
         this.alcance = 40;
+        this.chanceEsquiva = 0.10;
     }
 
     @Override
