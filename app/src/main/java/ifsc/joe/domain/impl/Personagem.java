@@ -18,6 +18,7 @@ public abstract class Personagem {
     protected Image icone;
     protected float alpha = 1.0f;
     protected boolean morrendo = false;
+    protected int alcance;
 
     public Personagem(int posX, int posY, int vida, double velocidade, int ataque) {
         this.icone = carregarImagem(getNomeImagem());
@@ -118,9 +119,22 @@ public abstract class Personagem {
             g2.drawImage(this.icone, this.posX, this.posY, tela);
         }
 
+        if (atacando) {
+            g2.setColor(new Color(255, 0, 0, 60));
+
+            int centerX = posX + icone.getWidth(null) / 2;
+            int centerY = posY + icone.getHeight(null) / 2;
+
+            g2.fillOval(
+                    centerX - alcance,
+                    centerY - alcance,
+                    alcance * 2,
+                    alcance * 2
+            );
+        }
+
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
-
 
     protected Image carregarImagem(String imagem) {
         return new ImageIcon(
