@@ -5,6 +5,8 @@ import ifsc.joe.enums.Direcao;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
+import java.awt.Graphics2D;
+import java.awt.AlphaComposite;
 
 public abstract class Personagem {
 
@@ -14,6 +16,8 @@ public abstract class Personagem {
     protected int posX, posY;
     protected boolean atacando;
     protected Image icone;
+    protected float alpha = 1.0f;
+    protected boolean morrendo = false;
 
     public Personagem(int posX, int posY, int vida, double velocidade, int ataque) {
         this.icone = carregarImagem(getNomeImagem());
@@ -37,12 +41,44 @@ public abstract class Personagem {
         return posY;
     }
 
+    public boolean isMorrendo() {
+        return morrendo;
+    }
+
+    public float getAlpha() {
+        return alpha;
+    }
+
     public void atacar() {
         this.atacando = !this.atacando;
     }
 
+    public void setMorrendo(boolean morrendo) {
+        this.morrendo = morrendo;
+    }
+
+    public void setAlpha(int alpha) {
+        this.alpha = alpha;
+    }
+
     public void sofrerDano(int dano) {
         this.vida = Math.max(0, this.vida - dano);
+    }
+
+    //método para o personagem morto sair da tela
+
+    public void iniciarFadeOut() {
+        morrendo = true;
+
+        new Thread(() -> {
+            try {
+                while (alpha > 0) {
+                    alpha -= 0.05f;
+                    Thread.sleep(30);
+                }
+                vida = 0;
+            } catch (InterruptedException ignored) {}
+        }).start();
     }
 
     public double calcularDistancia(Personagem outro) {
@@ -64,8 +100,12 @@ public abstract class Personagem {
     }
 
     public void desenhar(Graphics g, Component tela) {
+        Graphics2D g2 = (Graphics2D) g;
+
+        // aplica o desaparecer
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+
         if (atacando) {
-            Graphics2D g2 = (Graphics2D) g;
             g2.drawImage(
                     this.icone,
                     this.posX + icone.getWidth(null),
@@ -75,9 +115,12 @@ public abstract class Personagem {
                     tela
             );
         } else {
-            g.drawImage(this.icone, this.posX, this.posY, tela);
+            g2.drawImage(this.icone, this.posX, this.posY, tela);
         }
+
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
+
 
     protected Image carregarImagem(String imagem) {
         return new ImageIcon(

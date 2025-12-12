@@ -19,6 +19,9 @@ public class Tela extends JPanel {
     private final Set<Aldeao> aldeoes;
     private final Set<Arqueiro> arqueiros;
     private final Set<Cavaleiro> cavaleiros;
+    private int mortosAldeoes = 0;
+    private int mortosArqueiros = 0;
+    private int mortosCavaleiros = 0;
 
     public Tela() {
 
@@ -117,6 +120,54 @@ public class Tela extends JPanel {
             cav.atacar();
         }
 
+        removerMortos();
         repaint();
+    }
+
+    private void removerMortos() {
+
+        // inicia fade-out quando vida chega a 0
+        aldeoes.forEach(a -> {
+            if (a.getVida() <= 0 && !a.isMorrendo())
+                a.iniciarFadeOut();
+        });
+
+        arqueiros.forEach(arq -> {
+            if (arq.getVida() <= 0 && !arq.isMorrendo())
+                arq.iniciarFadeOut();
+        });
+
+        cavaleiros.forEach(cav -> {
+            if (cav.getVida() <= 0 && !cav.isMorrendo())
+                cav.iniciarFadeOut();
+        });
+
+        //funções para remover quando a animação de fade-out terminar
+        aldeoes.removeIf(a -> {
+            if (a.getAlpha() <= 0) {
+                mortosAldeoes++;
+                System.out.println("Aldeões mortos: " + mortosAldeoes);
+                return true;
+            }
+            return false;
+        });
+
+        arqueiros.removeIf(arq -> {
+            if (arq.getAlpha() <= 0) {
+                mortosArqueiros++;
+                System.out.println("Arqueiros mortos: " + mortosArqueiros);
+                return true;
+            }
+            return false;
+        });
+
+        cavaleiros.removeIf(cav -> {
+            if (cav.getAlpha() <= 0) {
+                mortosCavaleiros++;
+                System.out.println("Cavaleiros mortos: " + mortosCavaleiros);
+                return true;
+            }
+            return false;
+        });
     }
 }
