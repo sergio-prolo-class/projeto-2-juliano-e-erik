@@ -1,15 +1,22 @@
 package ifsc.joe.domain.impl;
 
 import ifsc.joe.domain.api.Guerreiro;
+import ifsc.joe.config.Config;
 
 import java.util.List;
 
 public class Aldeao extends Personagem implements Guerreiro {
 
     public Aldeao(int posX, int posY) {
-        super(posX, posY, 25, 0.8, 5);
-        this.alcance = 40;
-        this.chanceEsquiva = 0.10;
+        super(
+                posX,
+                posY,
+                Config.getInt("aldeao.vida"),
+                Config.getInt("aldeao.velocidade"),
+                Config.getInt("aldeao.ataque"),
+                Config.getInt("aldeao.alcance"),
+                Config.getDouble("aldeao.chanceEsquiva")
+        );
     }
 
     @Override

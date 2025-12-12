@@ -12,24 +12,26 @@ public abstract class Personagem {
 
     protected int vida;
     protected int ataque;
-    protected double velocidade;
+    protected int velocidade;
+    protected int alcance;
+    protected double chanceEsquiva;
     protected int posX, posY;
     protected boolean atacando;
     protected Image icone;
     protected float alpha = 1.0f;
     protected boolean morrendo = false;
-    protected int alcance;
-    protected double chanceEsquiva;
     private long tempoEsquiva = 0;
 
 
-    public Personagem(int posX, int posY, int vida, double velocidade, int ataque) {
+    public Personagem(int posX, int posY, int vida, int velocidade, int ataque, int alcance, double chanceEsquiva) {
         this.icone = carregarImagem(getNomeImagem());
         this.posX = posX;
         this.posY = posY;
         this.vida = vida;
         this.velocidade = velocidade;
         this.ataque = ataque;
+        this.alcance = alcance;
+        this.chanceEsquiva = chanceEsquiva;
     }
 
     public int getVida() {
