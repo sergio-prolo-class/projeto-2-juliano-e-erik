@@ -4,10 +4,11 @@ import ifsc.joe.domain.api.Guerreiro;
 import ifsc.joe.config.Config;
 
 import java.util.List;
+import java.util.Collection;
 
 public class Arqueiro extends Personagem implements Guerreiro {
 
-    private int flechas = 20;
+    private int flechas;
 
     public Arqueiro(int posX, int posY) {
         super(
@@ -19,6 +20,7 @@ public class Arqueiro extends Personagem implements Guerreiro {
                 Config.getInt("arqueiro.alcance"),
                 Config.getDouble("arqueiro.chanceEsquiva")
         );
+        this.flechas = Config.getInt("arqueiro.flechas");
     }
 
     @Override
@@ -27,15 +29,18 @@ public class Arqueiro extends Personagem implements Guerreiro {
     }
 
     @Override
-    public void atacarArea(List<Personagem> alvos) {
+    public void atacarArea(Collection<Personagem> alvos) {
         if (flechas <= 0) return;
 
         for (Personagem alvo : alvos) {
-            if (alvo == this || alvo.getVida() <= 0) continue; // para eles n se suicidarem
-            double distancia = this.calcularDistancia(alvo);
-            if (distancia <= 120) {
-                alvo.sofrerDano(this.ataque);
+            if (alvo == this || alvo.getVida() <= 0) continue;
+
+            if (calcularDistancia(alvo) <= alcance) {
+                iniciarAtaque();
+                animarAtaque();
+                alvo.sofrerDano(ataque);
                 flechas--;
+                if (flechas <= 0) break;
             }
         }
     }

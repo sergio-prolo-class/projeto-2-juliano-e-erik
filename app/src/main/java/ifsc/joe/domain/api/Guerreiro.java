@@ -1,9 +1,11 @@
 package ifsc.joe.domain.api;
 
 import ifsc.joe.domain.impl.Personagem;
-
-import java.util.List;
+import java.util.Collection;
 
 public interface Guerreiro {
-    void atacarArea(List<Personagem> personagens);
+
+    void atacarArea(Collection<Personagem> alvos);
+    default void atacar() {
+    }
 }

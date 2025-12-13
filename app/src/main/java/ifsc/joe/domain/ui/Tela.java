@@ -1,40 +1,38 @@
 package ifsc.joe.domain.ui;
 
-import ifsc.joe.domain.impl.Aldeao;
-import ifsc.joe.domain.impl.Arqueiro;
-import ifsc.joe.domain.impl.Cavaleiro;
-import ifsc.joe.domain.impl.Personagem;
-import ifsc.joe.domain.enums.Direcao;
 import ifsc.joe.config.Config;
-import javax.swing.border.EmptyBorder;
+import ifsc.joe.domain.enums.Direcao;
+import ifsc.joe.domain.impl.Personagem;
+import ifsc.joe.domain.api.Guerreiro;
+import ifsc.joe.domain.enums.TipoPersonagem;
+import ifsc.joe.domain.impl.*;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Tela extends JPanel {
 
-    private final Set<Aldeao> aldeoes;
-    private final Set<Arqueiro> arqueiros;
-    private final Set<Cavaleiro> cavaleiros;
-    private int mortosAldeoes = 0;
-    private int mortosArqueiros = 0;
-    private int mortosCavaleiros = 0;
+    private final Set<Personagem> personagens;
+    private int totalMortos = 0;
+
+    private final Timer timer;
 
     public Tela() {
+        setBackground(Color.WHITE);
 
-        //TODO preciso ser melhorado
-
-        this.setBackground(Color.white);
         int padding = Config.getInt("tela.padding");
-        this.setBorder(new EmptyBorder(padding, padding, padding, padding));
-        this.aldeoes = new HashSet<>();
-        this.arqueiros = new HashSet<>();
-        this.cavaleiros = new HashSet<>();
+        setBorder(new EmptyBorder(padding, padding, padding, padding));
+
+        personagens = new HashSet<>();
+
+        timer = new Timer(16, e -> {
+            atualizarEstados();
+            repaint();
+        });
+        timer.start();
     }
 
     @Override
@@ -45,85 +43,63 @@ public class Tela extends JPanel {
         );
     }
 
-    /**
-     * Method que invocado sempre que o JPanel precisa ser resenhado.
-     * @param g Graphics componente de java.awt
-     */
+    private void atualizarEstados() {
+        for (Personagem p : personagens) {
+            p.atualizarAnimacoes();
+        }
+        removerMortos();
+    }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
 
-        //TODO preciso ser melhorado
+        Graphics2D g2 = (Graphics2D) g;
 
-        // percorrendo a lista de aldeões, arqueiros e cavaleiros e pedindo para cada um se desenhar na tela
-        this.aldeoes.forEach(aldeao -> aldeao.desenhar(g, this));
-        this.arqueiros.forEach(arqueiro -> arqueiro.desenhar(g, this));
-        this.cavaleiros.forEach(cavaleiro -> cavaleiro.desenhar(g, this));
+        for (Personagem p : personagens) {
+            p.atualizarAnimacoes();
+            p.desenhar(g2, this);
 
-        // liberando o contexto gráfico
-        g.dispose();
+            if (p instanceof Guerreiro && p.estaAtacando()) {
+                desenharRangeAtaque(g2, p);
+            }
+        }
     }
 
-    //cria os personagens
-    public void criarAldeao(int x, int y) {
-        Aldeao a = new Aldeao(x, y);
-        a.desenhar(super.getGraphics(), this);
-        this.aldeoes.add(a);
-    }
-    public void criarArqueiro(int x, int y) {
-        Arqueiro arq = new Arqueiro(x, y);
-        arq.desenhar(super.getGraphics(), this);
-        this.arqueiros.add(arq);
-    }
-    public void criarCavaleiro(int x, int y) {
-        Cavaleiro cav = new Cavaleiro(x, y);
-        cav.desenhar(super.getGraphics(), this);
-        this.cavaleiros.add(cav);
+
+    private void desenharRangeAtaque(Graphics2D g2, Personagem p) {
+        g2.setColor(new Color(255, 0, 0, 80));
+
+        int raio = p.getAlcance();
+        int x = p.getPosX() - raio;
+        int y = p.getPosY() - raio;
+
+        g2.fillOval(x, y, raio * 2, raio * 2);
     }
 
-    /**
-     * Atualiza as coordenadas X ou Y de todos os aldeoes
-     *
-     * @param direcao direcao para movimentar
-     */
+    public void criarPersonagem(TipoPersonagem tipo, int x, int y) {
+        Personagem p = switch (tipo) {
+            case ALDEAO -> new Aldeao(x, y);
+            case ARQUEIRO -> new Arqueiro(x, y);
+            case CAVALEIRO -> new Cavaleiro(x, y);
+        };
 
-    public void movimentarAldeoes(Direcao direcao) {
-        //TODO preciso ser melhorado
-
-        this.aldeoes.forEach(aldeao -> aldeao.mover(direcao, this.getWidth(), this.getHeight()));
-        this.arqueiros.forEach(arqueiro -> arqueiro.mover(direcao, this.getWidth(), this.getHeight()));
-        this.cavaleiros.forEach(cavaleiro -> cavaleiro.mover(direcao, this.getWidth(), this.getHeight()));
-
-        // Depois que as coordenadas foram atualizadas é necessário repintar o JPanel
-        this.repaint();
+        personagens.add(p);
     }
 
-    private List<Personagem> getTodosOsPersonagens() {
-        List<Personagem> lista = new ArrayList<>();
-        lista.addAll(aldeoes);
-        lista.addAll(arqueiros);
-        lista.addAll(cavaleiros);
-        return lista;
+    public void movimentarTodos(Direcao direcao) {
+        for (Personagem p : personagens) {
+            p.mover(direcao, getWidth(), getHeight());
+        }
     }
 
-    //ataque dos personagens
     public void atacarTodos() {
-        List<Personagem> personagens = getTodosOsPersonagens();
+        for (Personagem p : personagens) {
 
-        for (Aldeao a : aldeoes) {
-            a.atacarArea(personagens);
-            a.atacar();
-        }
-
-        for (Arqueiro arq : arqueiros) {
-            arq.atacarArea(personagens);
-            arq.atacar();
-        }
-
-        for (Cavaleiro cav : cavaleiros) {
-            cav.atacarArea(personagens);
-            cav.atacar();
+            p.iniciarAtaque();
+            if (p instanceof Guerreiro guerreiro) {
+                guerreiro.atacarArea(personagens);
+            }
         }
 
         removerMortos();
@@ -132,45 +108,18 @@ public class Tela extends JPanel {
 
     private void removerMortos() {
 
-        // inicia fade-out quando vida chega a 0
-        aldeoes.forEach(a -> {
-            if (a.getVida() <= 0 && !a.isMorrendo())
-                a.iniciarFadeOut();
-        });
-
-        arqueiros.forEach(arq -> {
-            if (arq.getVida() <= 0 && !arq.isMorrendo())
-                arq.iniciarFadeOut();
-        });
-
-        cavaleiros.forEach(cav -> {
-            if (cav.getVida() <= 0 && !cav.isMorrendo())
-                cav.iniciarFadeOut();
-        });
-
-        //funções para remover quando a animação de fade-out terminar
-        aldeoes.removeIf(a -> {
-            if (a.getAlpha() <= 0) {
-                mortosAldeoes++;
-                System.out.println("Aldeões mortos: " + mortosAldeoes);
-                return true;
+        // inicia fade-out
+        personagens.forEach(p -> {
+            if (p.getVida() <= 0 && !p.isMorrendo()) {
+                p.iniciarFadeOut();
             }
-            return false;
         });
 
-        arqueiros.removeIf(arq -> {
-            if (arq.getAlpha() <= 0) {
-                mortosArqueiros++;
-                System.out.println("Arqueiros mortos: " + mortosArqueiros);
-                return true;
-            }
-            return false;
-        });
-
-        cavaleiros.removeIf(cav -> {
-            if (cav.getAlpha() <= 0) {
-                mortosCavaleiros++;
-                System.out.println("Cavaleiros mortos: " + mortosCavaleiros);
+        // remove após fade
+        personagens.removeIf(p -> {
+            if (p.getAlpha() <= 0f) {
+                totalMortos++;
+                System.out.println("Personagens mortos: " + totalMortos);
                 return true;
             }
             return false;

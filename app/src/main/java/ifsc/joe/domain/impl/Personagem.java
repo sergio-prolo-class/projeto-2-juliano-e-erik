@@ -4,9 +4,9 @@ import ifsc.joe.domain.enums.Direcao;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Objects;
-import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
+import java.util.Objects;
+import java.util.Random;
 
 public abstract class Personagem {
 
@@ -16,163 +16,168 @@ public abstract class Personagem {
     protected int alcance;
     protected double chanceEsquiva;
     protected int posX, posY;
-    protected boolean atacando;
     protected Image icone;
-    protected float alpha = 1.0f;
+    protected boolean atacando = false;
     protected boolean morrendo = false;
+    protected float alpha = 1.0f;
+    private long fimAnimacaoAtaque = 0;
     private long tempoEsquiva = 0;
 
+    private static final Random RANDOM = new Random();
 
-    public Personagem(int posX, int posY, int vida, int velocidade, int ataque, int alcance, double chanceEsquiva) {
-        this.icone = carregarImagem(getNomeImagem());
+    protected Personagem(
+            int posX,
+            int posY,
+            int vida,
+            int ataque,
+            int velocidade,
+            int alcance,
+            double chanceEsquiva
+    ) {
         this.posX = posX;
         this.posY = posY;
         this.vida = vida;
-        this.velocidade = velocidade;
         this.ataque = ataque;
+        this.velocidade = velocidade;
         this.alcance = alcance;
         this.chanceEsquiva = chanceEsquiva;
+        this.icone = carregarImagem(getNomeImagem());
     }
 
     public int getVida() {
         return vida;
-    }
-    public int getAtaque() {
-        return ataque;
-    }
-    public int getPosX() {
-        return posX;
-    }
-    public int getPosY() {
-        return posY;
-    }
-
-    public boolean isMorrendo() {
-        return morrendo;
     }
 
     public float getAlpha() {
         return alpha;
     }
 
-    public void atacar() {
-        this.atacando = !this.atacando;
+    public boolean isMorrendo() {
+        return morrendo;
     }
 
-    public void setMorrendo(boolean morrendo) {
-        this.morrendo = morrendo;
+    public boolean estaAtacando() {
+        return atacando;
     }
 
-    public void setAlpha(int alpha) {
-        this.alpha = alpha;
+    public int getAlcance() {
+        return alcance;
+    }
+
+    public int getPosX() {
+        return posX + icone.getWidth(null) / 2;
+    }
+
+    public int getPosY() {
+        return posY + icone.getHeight(null) / 2;
+    }
+
+    public void iniciarAtaque() {
+        atacando = true;
+        fimAnimacaoAtaque = System.currentTimeMillis() + 400;
     }
 
     public void sofrerDano(int dano) {
-        // Random para decidir esquiva
-        if (Math.random() < chanceEsquiva) {
-            exibirEfeitoEsquiva();
+        if (tentouEsquivar()) {
+            tempoEsquiva = System.currentTimeMillis();
             return;
         }
-
-        this.vida = Math.max(0, this.vida - dano);
+        vida = Math.max(0, vida - dano);
     }
 
-    protected void exibirEfeitoEsquiva() {
-        tempoEsquiva = System.currentTimeMillis();
-    }
-
-    //metodo para o personagem morto sair da tela
-
-    public void iniciarFadeOut() {
-        morrendo = true;
-
-        new Thread(() -> {
-            try {
-                while (alpha > 0) {
-                    alpha -= 0.05f;
-                    Thread.sleep(30);
-                }
-                vida = 0;
-            } catch (InterruptedException ignored) {}
-        }).start();
+    protected boolean tentouEsquivar() {
+        return RANDOM.nextDouble() < chanceEsquiva;
     }
 
     public double calcularDistancia(Personagem outro) {
-        return Math.hypot(outro.posX - this.posX, outro.posY - this.posY);
+        return Math.hypot(outro.posX - posX, outro.posY - posY);
     }
-
-    protected abstract String getNomeImagem();
 
     public void mover(Direcao direcao, int maxLargura, int maxAltura) {
         switch (direcao) {
-            case CIMA     -> this.posY -= 10;
-            case BAIXO    -> this.posY += 10;
-            case ESQUERDA -> this.posX -= 10;
-            case DIREITA  -> this.posX += 10;
+            case CIMA -> posY -= velocidade;
+            case BAIXO -> posY += velocidade;
+            case ESQUERDA -> posX -= velocidade;
+            case DIREITA -> posX += velocidade;
+        }
+        limitarDentroDaTela(maxLargura, maxAltura);
+    }
+
+    protected void limitarDentroDaTela(int maxLargura, int maxAltura) {
+        posX = Math.min(Math.max(0, posX), maxLargura - icone.getWidth(null));
+        posY = Math.min(Math.max(0, posY), maxAltura - icone.getHeight(null));
+    }
+
+    public void atualizarAnimacoes() {
+
+        // fim ataque
+        if (atacando && System.currentTimeMillis() > fimAnimacaoAtaque) {
+            atacando = false;
         }
 
-        this.posX = Math.min(
-                Math.max(0, this.posX),
-                maxLargura - this.icone.getWidth(null)
-        );
+        if (atacando && System.currentTimeMillis() > fimAnimacaoAtaque) {
+            atacando = false;
+        }
 
-        this.posY = Math.min(
-                Math.max(0, this.posY),
-                maxAltura - this.icone.getHeight(null)
-        );
+        // fade-out morte
+        if (morrendo && alpha > 0f) {
+            alpha -= 0.03f;
+            if (alpha < 0f) alpha = 0f;
+        }
+    }
+
+    public void iniciarFadeOut() {
+        morrendo = true;
     }
 
     public void desenhar(Graphics g, Component tela) {
         Graphics2D g2 = (Graphics2D) g;
 
-        // aplica o desaparecer
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g2.setComposite(
+                AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha)
+        );
 
+        desenharImagem(g2, tela);
+        desenharEfeitos(g2);
+
+        g2.setComposite(
+                AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
+        );
+    }
+
+    protected void desenharImagem(Graphics2D g2, Component tela) {
         if (atacando) {
             g2.drawImage(
-                    this.icone,
-                    this.posX + icone.getWidth(null),
-                    this.posY,
+                    icone,
+                    posX + icone.getWidth(null),
+                    posY,
                     -icone.getWidth(null),
                     icone.getHeight(null),
                     tela
             );
         } else {
-            g2.drawImage(this.icone, this.posX, this.posY, tela);
+            g2.drawImage(icone, posX, posY, tela);
         }
+    }
 
+    protected void animarAtaque() {
+        iniciarAtaque();
+    }
+
+    protected void desenharEfeitos(Graphics2D g2) {
         if (System.currentTimeMillis() - tempoEsquiva < 600) {
             g2.setColor(Color.YELLOW);
             g2.setFont(new Font("Arial", Font.BOLD, 14));
-
-            g2.drawString(
-                    "ESQUIVOU!",
-                    this.posX,
-                    this.posY - 10
-            );
+            g2.drawString("ESQUIVOU!", posX, posY - 10);
         }
-
-        if (atacando) {
-            g2.setColor(new Color(255, 0, 0, 60));
-
-            int centerX = posX + icone.getWidth(null) / 2;
-            int centerY = posY + icone.getHeight(null) / 2;
-
-            g2.fillOval(
-                    centerX - alcance,
-                    centerY - alcance,
-                    alcance * 2,
-                    alcance * 2
-            );
-        }
-
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
+
+    protected abstract String getNomeImagem();
 
     protected Image carregarImagem(String imagem) {
         return new ImageIcon(
                 Objects.requireNonNull(
-                        getClass().getClassLoader().getResource("./" + imagem + ".png")
+                        getClass().getClassLoader().getResource(imagem + ".png")
                 )
         ).getImage();
     }

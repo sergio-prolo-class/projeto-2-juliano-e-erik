@@ -4,6 +4,7 @@ import ifsc.joe.domain.api.Guerreiro;
 import ifsc.joe.config.Config;
 
 import java.util.List;
+import java.util.Collection;
 
 public class Cavaleiro extends Personagem implements Guerreiro {
 
@@ -19,19 +20,20 @@ public class Cavaleiro extends Personagem implements Guerreiro {
         );
     }
 
-
     @Override
     protected String getNomeImagem() {
         return "cavaleiro";
     }
 
     @Override
-    public void atacarArea(List<Personagem> alvos) {
+    public void atacarArea(Collection<Personagem> alvos) {
         for (Personagem alvo : alvos) {
-            if (alvo == this || alvo.getVida() <= 0) continue; // para eles n se suicidarem
-            double distancia = this.calcularDistancia(alvo);
-            if (distancia <= 60) {
-                alvo.sofrerDano(this.ataque);
+            if (alvo == this || alvo.getVida() <= 0) continue;
+
+            if (calcularDistancia(alvo) <= alcance) {
+                iniciarAtaque();
+                animarAtaque();
+                alvo.sofrerDano(ataque);
             }
         }
     }
