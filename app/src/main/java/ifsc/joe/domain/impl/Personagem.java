@@ -111,8 +111,15 @@ public abstract class Personagem {
             case DIREITA  -> this.posX += 10;
         }
 
-        this.posX = Math.min(Math.max(0, this.posX), maxLargura - this.icone.getWidth(null));
-        this.posY = Math.min(Math.max(0, this.posY), maxAltura - this.icone.getHeight(null));
+        this.posX = Math.min(
+                Math.max(0, this.posX),
+                maxLargura - this.icone.getWidth(null)
+        );
+
+        this.posY = Math.min(
+                Math.max(0, this.posY),
+                maxAltura - this.icone.getHeight(null)
+        );
     }
 
     public void desenhar(Graphics g, Component tela) {

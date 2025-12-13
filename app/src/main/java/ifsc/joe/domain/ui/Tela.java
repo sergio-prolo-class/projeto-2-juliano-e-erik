@@ -5,6 +5,8 @@ import ifsc.joe.domain.impl.Arqueiro;
 import ifsc.joe.domain.impl.Cavaleiro;
 import ifsc.joe.domain.impl.Personagem;
 import ifsc.joe.domain.enums.Direcao;
+import ifsc.joe.config.Config;
+import javax.swing.border.EmptyBorder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,9 +30,19 @@ public class Tela extends JPanel {
         //TODO preciso ser melhorado
 
         this.setBackground(Color.white);
+        int padding = Config.getInt("tela.padding");
+        this.setBorder(new EmptyBorder(padding, padding, padding, padding));
         this.aldeoes = new HashSet<>();
         this.arqueiros = new HashSet<>();
         this.cavaleiros = new HashSet<>();
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(
+                Config.getInt("tela.largura"),
+                Config.getInt("tela.altura")
+        );
     }
 
     /**
@@ -53,10 +65,7 @@ public class Tela extends JPanel {
         g.dispose();
     }
 
-    /**
-     * Cria os personagens nas coordenadas X e Y
-     */
-
+    //cria os personagens
     public void criarAldeao(int x, int y) {
         Aldeao a = new Aldeao(x, y);
         a.desenhar(super.getGraphics(), this);
@@ -98,10 +107,7 @@ public class Tela extends JPanel {
         return lista;
     }
 
-    /**
-     * Altera o estado do aldeão de atacando para não atacando e vice-versa
-     */
-
+    //ataque dos personagens
     public void atacarTodos() {
         List<Personagem> personagens = getTodosOsPersonagens();
 
